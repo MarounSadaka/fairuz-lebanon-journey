@@ -6,7 +6,7 @@ self.addEventListener('install', e => {
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys()
-    .then(ks => Promise.all(ks.filter(k => k !== C && k !== F).map(k => caches.delete(k))))
+    .then(ks => Promise.all(ks.filter(k => (k.startsWith('fairuz-app-') || k.startsWith('fairuz-fonts-')) && k !== C && k !== F).map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', e => {
