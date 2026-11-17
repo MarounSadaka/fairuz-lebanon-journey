@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="google" content="notranslate">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#07070d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="فيروز">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <title>فيروز | صوتٌ صار وطناً</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
@@ -134,6 +142,15 @@ figcaption{position:absolute;top:calc(100% + 22px);left:0;right:0;text-align:cen
 #vig{position:fixed;inset:0;pointer-events:none;z-index:6;background:radial-gradient(ellipse 80% 75% at 50% 48%,transparent 60%,rgba(0,0,0,.45) 100%)}
 #ui{position:fixed;inset:0;pointer-events:none;z-index:8}
 #ui>*{pointer-events:auto}
+.inst{margin-top:.9em;font-family:var(--bf);font-size:clamp(16px,1.15vw,21px);color:var(--gold);background:rgba(241,207,140,.08);cursor:pointer;
+ border:1px solid rgba(241,207,140,.45);border-radius:99px;padding:.2em 1.2em .3em;transition:background .25s,opacity 1.2s ease,transform 1.5s var(--ease)}
+.inst:hover{background:rgba(241,207,140,.18)}
+.inst[hidden]{display:none}
+.ios{max-width:330px;margin-top:.7em;font-size:clamp(15px,1vw,18px);line-height:1.6;color:#efe3c9;background:rgba(7,7,13,.75);border:1px solid rgba(241,207,140,.35);border-radius:10px;padding:.5em .9em}
+.ios[hidden]{display:none}
+body.app #hint{display:none}
+#ui{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+#nav,#now,#gear{margin-bottom:env(safe-area-inset-bottom)}
 #nav{position:fixed;bottom:2.3vh;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;direction:rtl;transition:opacity .6s}
 #nav .arr{width:38px;height:38px;border-radius:50%;border:1px solid rgba(241,207,140,.35);background:rgba(7,7,13,.45);color:var(--gold);font-size:20px;cursor:pointer;display:grid;place-items:center;transition:background .2s}
 #nav .arr:hover{background:rgba(241,207,140,.18)}
@@ -286,7 +303,8 @@ SL.forEach((d,i)=>{
  if(d.cover){s.className='s cover';
   h='<img class="cv" alt="" src="'+IMG[d.im]+'"><div class="spot"></div><div class="hero">'+
    '<div class="eyebrow">THE ART OF FAIRUZ · AND HER PEOPLE</div><div class="big">فيروز</div><div class="orn">'+ORN+'</div>'+
-   '<div class="sub">صوتٌ صار وطناً</div><div class="line">فنّها، وحكايتها مع اللبنانيين</div><button class="btn" id="start">ابدأ</button></div>';}
+   '<div class="sub">صوتٌ صار وطناً</div><div class="line">فنّها، وحكايتها مع اللبنانيين</div><button class="btn" id="start">ابدأ</button>'+
+   '<button class="inst" id="inst" hidden>📲 ثبّتها كتطبيق</button><div class="ios" id="ios" hidden>في Safari: اضغط زرّ المشاركة ⬆️ ثم «إضافة إلى الشاشة الرئيسية»</div></div>';}
  else if(d.fin){s.className='s fin';
   const order=[1,7,5,0,10,9,2,4,6,8,3];const rows=[order.slice(0,4),order.slice(4,8),order.slice(8).concat([1])];
   h='<div class="mos">'+rows.map(r=>{const imgs=r.concat(r).concat(r).map(k=>'<img alt="" src="'+IMG[k]+'">').join('');return '<div class="row">'+imgs+imgs+'</div>'}).join('')+'</div><div class="shade"></div>'+
@@ -389,6 +407,19 @@ function dust(t){requestAnimationFrame(dust);if(document.hidden)return;const dt=
   dx.fillStyle='rgba(255,232,190,'+a+')';dx.beginPath();dx.arc(x,y,m.r,0,TAU);dx.fill()}
 }
 requestAnimationFrame(dust);
+
+/* ================= app (install + offline) ================= */
+const isApp=matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+if(isApp)document.body.classList.add('app');
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}
+let instEv=null;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();instEv=e;if(!isApp)$('inst').hidden=false});
+addEventListener('appinstalled',()=>{instEv=null;$('inst').hidden=true});
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+if(isIOS&&!isApp&&/^https?:$/.test(location.protocol))$('inst').hidden=false;
+$('inst').onclick=async e=>{e.stopPropagation();
+ if(instEv){try{instEv.prompt();await instEv.userChoice}catch(err){}instEv=null;$('inst').hidden=true}
+ else if(isIOS){$('ios').hidden=!$('ios').hidden}};
 
 /* ================= start ================= */
 const hm=location.hash.match(/^#(?:shot|s)(\d+)/);
